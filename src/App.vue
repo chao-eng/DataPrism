@@ -119,12 +119,14 @@ const renderChart = (points) => {
           await batchToggleDeletion(pointIdsToToggle);
           // 清除选择框
           chartInstance.dispatchAction({ type: "brush", command: "clear", areas: [] });
-          // 自动退出框选模式，恢复普通鼠标指针
+          // 注释掉自动退出，保持框选状态
+          /*
           chartInstance.dispatchAction({
             type: 'takeGlobalCursor',
             key: 'brush',
             brushOption: { brushType: false }
           });
+          */
         }
       });
     } else {
