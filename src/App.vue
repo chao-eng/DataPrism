@@ -1171,13 +1171,16 @@ const openGithub = async () => {
 }
 
 .selection-bar {
-  padding: 8px 16px;
+  padding: 10px 16px;
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   background-color: var(--color-bg-base);
   border-bottom: 1px solid var(--color-border);
-  margin-bottom: 8px;
+  margin-bottom: 4px;
+  position: sticky;
+  top: 0;
+  z-index: 5;
 }
 
 .select-all-label {
@@ -1186,18 +1189,53 @@ const openGithub = async () => {
   cursor: pointer;
   user-select: none;
   font-weight: 500;
+  flex: 1;
 }
 
+
 .custom-checkbox, .item-checkbox {
-  width: 16px;
-  height: 16px;
+  appearance: none;
+  -webkit-appearance: none;
+  width: 18px;
+  height: 18px;
+  border: 1.5px solid var(--color-border-hover);
+  border-radius: 4px;
+  background: var(--color-surface);
+  position: relative;
   cursor: pointer;
-  accent-color: var(--color-primary);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  flex-shrink: 0;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.custom-checkbox:hover, .item-checkbox:hover {
+  border-color: var(--color-primary);
+  background-color: var(--color-bg-base);
+}
+
+.custom-checkbox:checked, .item-checkbox:checked {
+  background-color: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+.custom-checkbox:checked::after, .item-checkbox:checked::after {
+  content: '';
+  position: absolute;
+  width: 5px;
+  height: 10px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+  margin-top: -2px;
 }
 
 .item-checkbox {
-  margin-right: -4px;
+  margin-right: -2px;
 }
+
 
 
 .file-list-container {
