@@ -29,3 +29,5 @@ npm run tauri dev
 # 构建生产版本
 npm run tauri build
 ```
+![任务界面](docs/image/main.png)
+![人工处理界面](docs/image/main2.png)
