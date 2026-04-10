@@ -1,8 +1,8 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "rou-tools",
+  "productName": "DataPrism",
   "version": "0.1.0",
-  "identifier": "com.guojc.rou-tools",
+  "identifier": "com.guojc.dataprism",
   "build": {
     "beforeDevCommand": "npm run dev",
     "devUrl": "http://localhost:1420",
@@ -12,7 +12,7 @@
   "app": {
     "windows": [
       {
-        "title": "rou-tools",
+        "title": "DataPrism",
         "width": 1200,
         "height": 800,
         "resizable": true

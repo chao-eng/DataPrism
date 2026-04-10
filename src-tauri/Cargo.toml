@@ -1,5 +1,5 @@
 [package]
-name = "rou-tools"
+name = "dataprism"
 version = "0.1.0"
 description = "Spectral data processing tool"
 authors = ["you"]

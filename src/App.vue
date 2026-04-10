@@ -1,6 +1,6 @@
 <script setup>
 import { ref, onMounted } from "vue";
-import { Plus, History, Settings, FileText, ChevronRight, BarChart2, Download, Filter, Loader2, X, Trash2 } from "lucide-vue-next";
+import { Plus, History, FileText, ChevronRight, BarChart2, Download, Filter, Loader2, X, Trash2, User } from "lucide-vue-next";
 import { initDb, getDb } from "./utils/db";
 import { open, save } from "@tauri-apps/plugin-dialog";
 import { readDir, writeFile } from "@tauri-apps/plugin-fs";
@@ -416,8 +416,8 @@ const exportTask = async () => {
     <!-- Sidebar -->
     <aside class="sidebar">
       <div class="brand">
-        <div class="brand-icon">rou</div>
-        <span class="brand-name">rou-tools</span>
+        <div class="brand-icon">DP</div>
+        <span class="brand-name">DataPrism</span>
       </div>
       
       <nav class="nav-menu">
@@ -441,8 +441,8 @@ const exportTask = async () => {
 
       <div class="sidebar-footer">
         <div class="nav-item" @click="currentTab = 'settings'">
-          <Settings :size="20" />
-          <span>系统设置</span>
+          <User :size="20" />
+          <span>关于</span>
         </div>
       </div>
     </aside>
@@ -453,7 +453,7 @@ const exportTask = async () => {
         <div class="page-title">
           <h2 v-if="currentTab === 'tasks'">任务概览</h2>
           <h2 v-else-if="currentTab === 'review'">可视化审核与干预</h2>
-          <h2 v-else>设置</h2>
+          <h2 v-else>关于</h2>
         </div>
         
         <div class="actions">
@@ -589,6 +589,27 @@ const exportTask = async () => {
             </div>
           </div>
         </div>
+
+        <!-- About View -->
+        <div v-if="currentTab === 'settings'" class="about-view">
+          <div class="about-card card">
+            <div class="about-brand">
+              <div class="brand-icon big">DP</div>
+            </div>
+            <div class="about-content">
+              <h3>关于 DataPrism</h3>
+              <p class="desc-main">
+                <strong>DataPrism</strong> 是一款专为光谱/波长强度数据处理设计的桌面端工具。
+              </p>
+              <p>
+                它解决了海量“波长-时间-强度”Excel数据文件中进行提取、清洗和人工校准的效率痛点。
+              </p>
+              <p>
+                本应用基于现代化的轻量级桌面架构，实现多文件批量处理、基于 Z-Score 及局部中位数的算法自动过滤、可视化干预人工审核与结果的最终导出。
+              </p>
+            </div>
+          </div>
+        </div>
       </div>
     </main>
   </div>
@@ -630,6 +651,57 @@ const exportTask = async () => {
   justify-content: center;
   font-weight: bold;
   font-size: 14px;
+}
+
+.brand-icon.big {
+  width: 64px;
+  height: 64px;
+  font-size: 24px;
+  margin: 0 auto 20px;
+}
+
+/* About View Styles */
+.about-view {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding-top: 40px;
+  height: 100%;
+}
+
+.about-card {
+  max-width: 600px;
+  padding: 40px;
+  text-align: center;
+}
+
+.about-content h3 {
+  font-size: 20px;
+  margin-bottom: 24px;
+  color: var(--color-text-main);
+}
+
+.about-content p {
+  font-size: 15px;
+  line-height: 1.8;
+  color: var(--color-text-main);
+  margin-bottom: 16px;
+  text-align: left;
+}
+
+.about-content .desc-main {
+  font-size: 16px;
+  color: var(--color-text-main);
+}
+
+.version-tag {
+  display: inline-block;
+  margin-top: 24px;
+  padding: 4px 12px;
+  background-color: var(--color-bg-base);
+  border-radius: 20px;
+  font-size: 12px;
+  color: var(--color-text-muted);
 }
 
 .brand-name {
