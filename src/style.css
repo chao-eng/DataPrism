@@ -1,0 +1,102 @@
+/* Feishu-Inspired Modern Industrial Minimal Style CSS System */
+
+@import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Fira+Sans:wght@300;400;500;600;700&display=swap');
+
+:root {
+  /* Feishu Color Palette */
+  --color-primary: #3370FF;
+  --color-primary-hover: #1E50DE;
+  --color-primary-sub: #E1EAFF;
+  
+  --color-bg-base: #F5F6F7;
+  --color-surface: #FFFFFF;
+  
+  --color-text-main: #1F2329;
+  --color-text-muted: #8F959E;
+  --color-text-placeholder: #BBCCDD;
+  
+  --color-border: #EBECEF;
+  --color-border-hover: #DDE0E3;
+  
+  --color-success: #00B42A;
+  --color-danger: #F54A45;
+  --color-warning: #FF7D00;
+
+  /* Typography */
+  --font-body: 'Fira Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-mono: 'Fira Code', monospace;
+
+  /* Sizing & Spacing */
+  --radius-s: 4px;
+  --radius-m: 8px;
+  --radius-l: 12px;
+  
+  --transition-base: all 150ms ease-in-out;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-body);
+  background-color: var(--color-bg-base);
+  color: var(--color-text-main);
+  overflow: hidden; /* Desktop app feel */
+  user-select: none;
+  -webkit-font-smoothing: antialiased;
+}
+
+#app {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Scrollbar Style */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #DDE0E3;
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #C9CDD4;
+}
+
+/* Utilities */
+.cursor-pointer {
+  cursor: pointer;
+}
+
+.button-primary {
+  background-color: var(--color-primary);
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: var(--radius-s);
+  font-weight: 500;
+  cursor: pointer;
+  transition: var(--transition-base);
+}
+
+.button-primary:hover {
+  background-color: var(--color-primary-hover);
+}
+
+.card {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-m);
+  padding: 20px;
+}
