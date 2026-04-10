@@ -45,3 +45,5 @@ out_Filtered_*.xlsx
 # Temporary files
 *.tmp
 *.temp
+
+release.sh
