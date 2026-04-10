@@ -98,6 +98,35 @@ const renderChart = (points) => {
           await togglePointDeletion(pointId);
         }
       });
+
+      // 监听框选事件
+      chartInstance.on("brushSelected", async (params) => {
+        const selected = params.batch[0].selected;
+        const pointIdsToToggle = [];
+        
+        // 收集所有被框选到的点 ID
+        for (let sIdx = 0; sIdx < selected.length; sIdx++) {
+          const series = selected[sIdx];
+          for (let dIdx = 0; dIdx < series.dataIndex.length; dIdx++) {
+            const dataIdx = series.dataIndex[dIdx];
+            // 从系列数据中获取 ID
+            const pointId = chartInstance.getOption().series[sIdx].data[dataIdx][2];
+            pointIdsToToggle.push(pointId);
+          }
+        }
+
+        if (pointIdsToToggle.length > 0) {
+          await batchToggleDeletion(pointIdsToToggle);
+          // 清除选择框
+          chartInstance.dispatchAction({ type: "brush", command: "clear", areas: [] });
+          // 自动退出框选模式，恢复普通鼠标指针
+          chartInstance.dispatchAction({
+            type: 'takeGlobalCursor',
+            key: 'brush',
+            brushOption: { brushType: false }
+          });
+        }
+      });
     } else {
       chartInstance = existingInstance;
     }
@@ -110,7 +139,33 @@ const renderChart = (points) => {
 
   const option = {
     tooltip: { trigger: "axis" },
-    grid: { top: 40, right: 20, bottom: 40, left: 60 },
+    toolbox: {
+      feature: {
+        // 自定义“还原指针”按钮
+        myReset: {
+          show: true,
+          title: '还原指针/平移模式',
+          icon: 'path://M10,10 L15,15 M15,10 L10,15 M2,5 L8,5 M2,10 L8,10 M2,15 L5,15', 
+          onclick: () => {
+            chartInstance.dispatchAction({
+              type: 'takeGlobalCursor',
+              key: 'brush',
+              brushOption: { brushType: false }
+            });
+          }
+        },
+        brush: { type: ["rect"], title: { rect: "手动框选剔除" } }
+      },
+      right: "center",
+      top: 0
+    },
+    brush: {
+      toolbox: ["rect"],
+      xAxisIndex: 0,
+      throttleType: "debounce",
+      throttleDelay: 300
+    },
+    grid: { top: 60, right: 20, bottom: 40, left: 60 },
     xAxis: { type: "value", name: "采样点" },
     yAxis: { 
       type: "value", 
@@ -147,6 +202,24 @@ const togglePointDeletion = async (pointId) => {
     "UPDATE data_points SET is_deleted = CASE WHEN is_deleted = 0 THEN 2 ELSE 0 END WHERE id = ?",
     [pointId]
   );
+  await loadChartData();
+};
+
+const batchToggleDeletion = async (pointIds) => {
+  const db = await getDb();
+  // 将框选到的点全部设为手动剔除 (is_deleted = 2)
+  await db.execute(
+    `UPDATE data_points SET is_deleted = 2 WHERE id IN (${pointIds.join(',')})`
+  );
+  await loadChartData();
+};
+
+const resetCurrentData = async () => {
+  if (!activeFile.value) return;
+  if (!confirm("确定要恢复本文件的所有采集点吗？(包括算法自动剔除和手动剔除的内容)")) return;
+  
+  const db = await getDb();
+  await db.execute("UPDATE data_points SET is_deleted = 0 WHERE file_id = ?", [activeFile.value.id]);
   await loadChartData();
 };
 
@@ -489,8 +562,9 @@ const exportTask = async () => {
                     <input v-model="reviewParams.maxY" type="number" placeholder="自动" style="width: 80px;" @input="loadChartData">
                   </div>
                   <div class="btn-group">
-                    <button class="btn-minor" @click="reClean('current')">重洗当前</button>
-                    <button class="btn-minor" @click="reClean('all')">全量应用</button>
+                    <button class="btn-minor" @click="resetCurrentData">清空本页修改</button>
+                    <button class="btn-minor" @click="reClean('current')">重新清洗</button>
+                    <button class="btn-minor" @click="reClean('all')">全量应用算法</button>
                   </div>
                 </div>
               </div>
