@@ -1,10 +1,10 @@
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, onMounted, computed } from "vue";
 import { Plus, History, FileText, ChevronRight, BarChart2, Download, Filter, Loader2, X, Trash2, User, Github, Menu, ChevronLeft } from "lucide-vue-next";
 import { initDb, getDb } from "./utils/db";
-import { open as openDialog } from "@tauri-apps/plugin-dialog";
+import { open as openDialog, save } from "@tauri-apps/plugin-dialog";
 import { readDir, writeFile } from "@tauri-apps/plugin-fs";
-import { open as openUrl } from "@tauri-apps/plugin-shell";
+import { openUrl } from "@tauri-apps/plugin-opener";
 import * as echarts from "echarts";
 import { utils, write } from "xlsx";
 import { processFile, applyZScoreFilter } from "./utils/processor";
@@ -77,11 +77,22 @@ const selectTask = async (task) => {
   activeTask.value = task;
   currentTab.value = "review";
   const db = await getDb();
-  activeFileList.value = await db.select("SELECT * FROM file_records WHERE task_id = ?", [task.id]);
+  const files = await db.select("SELECT * FROM file_records WHERE task_id = ?", [task.id]);
+  activeFileList.value = files.map(f => ({ ...f, checked: true }));
   if (activeFileList.value.length > 0) {
     await selectFile(activeFileList.value[0]);
   }
 };
+
+const isAllSelected = computed({
+  get: () => activeFileList.value.length > 0 && activeFileList.value.every(f => f.checked),
+  set: (val) => {
+    activeFileList.value.forEach(f => f.checked = val);
+  }
+});
+
+const selectedFiles = computed(() => activeFileList.value.filter(f => f.checked));
+
 
 const selectFile = async (file) => {
   activeFile.value = file;
@@ -348,6 +359,10 @@ const deleteTask = async (taskId, event) => {
 
 const exportTask = async () => {
   if (!activeTask.value) return;
+  if (selectedFiles.value.length === 0) {
+    alert("请至少勾选一个文件进行导出");
+    return;
+  }
   
   try {
     const savePath = await save({
@@ -358,13 +373,13 @@ const exportTask = async () => {
     if (!savePath) return;
 
     isProcessing.value = true;
-    progress.value.total = activeFileList.value.length;
+    progress.value.total = selectedFiles.value.length;
     progress.value.current = 0;
 
     const db = await getDb();
     const columns = [];
 
-    for (const file of activeFileList.value) {
+    for (const file of selectedFiles.value) {
       progress.value.currentFile = `准备导出: ${file.file_name}`;
       
       const points = await db.select(
@@ -564,7 +579,13 @@ const openGithub = async () => {
         <!-- Review View Placeholder -->
         <div v-if="currentTab === 'review'" class="review-layout">
           <div class="review-sidebar card">
-            <div class="section-title">文件列表</div>
+            <div class="sidebar-header">
+              <div class="section-title">文件列表</div>
+              <div class="selection-bar">
+                <input type="checkbox" v-model="isAllSelected" id="selectAll" class="custom-checkbox" />
+                <label for="selectAll" class="select-all-label">全选 ({{ selectedFiles.length }})</label>
+              </div>
+            </div>
             <div class="file-list-container">
               <div class="file-list">
                 <div 
@@ -574,8 +595,9 @@ const openGithub = async () => {
                   :class="{ active: activeFile?.id === file.id }"
                   @click="selectFile(file)"
                 >
+                  <input type="checkbox" v-model="file.checked" @click.stop class="item-checkbox" />
                   <FileText :size="16" class="file-icon" />
-                  <span class="file-name">{{ file.file_name }}</span>
+                  <span class="file-name" :title="file.file_name">{{ file.file_name }}</span>
                 </div>
               </div>
             </div>
@@ -1141,12 +1163,42 @@ const openGithub = async () => {
 
 .section-title {
   padding: 0 16px;
-  font-size: 12px;
+  font-size: 11px;
   text-transform: uppercase;
   color: var(--color-text-muted);
-  letter-spacing: 0.5px;
-  margin-bottom: 12px;
+  letter-spacing: 0.8px;
+  margin-bottom: 8px;
 }
+
+.selection-bar {
+  padding: 8px 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background-color: var(--color-bg-base);
+  border-bottom: 1px solid var(--color-border);
+  margin-bottom: 8px;
+}
+
+.select-all-label {
+  font-size: 13px;
+  color: var(--color-text-main);
+  cursor: pointer;
+  user-select: none;
+  font-weight: 500;
+}
+
+.custom-checkbox, .item-checkbox {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  accent-color: var(--color-primary);
+}
+
+.item-checkbox {
+  margin-right: -4px;
+}
+
 
 .file-list-container {
   flex: 1;
