@@ -22,7 +22,8 @@ let chartInstance = null;
 // Review parameters
 const reviewParams = ref({
   zScore: 0.8,
-  minKeep: 80
+  minKeep: 80,
+  maxY: ""
 });
 
 // New task form... (rest of codes)
@@ -111,7 +112,12 @@ const renderChart = (points) => {
     tooltip: { trigger: "axis" },
     grid: { top: 40, right: 20, bottom: 40, left: 60 },
     xAxis: { type: "value", name: "采样点" },
-    yAxis: { type: "value", name: "强度", scale: true },
+    yAxis: { 
+      type: "value", 
+      name: "强度", 
+      scale: true,
+      max: reviewParams.value.maxY ? parseFloat(reviewParams.value.maxY) : null
+    },
     dataZoom: [{ type: "inside" }, { type: "slider" }],
     series: [
       {
@@ -477,6 +483,10 @@ const exportTask = async () => {
                   <div class="control-group">
                     <label>存活点数</label>
                     <input v-model.number="reviewParams.minKeep" type="number" style="width: 60px;">
+                  </div>
+                  <div class="control-group">
+                    <label>强度上限 (Y)</label>
+                    <input v-model="reviewParams.maxY" type="number" placeholder="自动" style="width: 80px;" @input="loadChartData">
                   </div>
                   <div class="btn-group">
                     <button class="btn-minor" @click="reClean('current')">重洗当前</button>
@@ -979,6 +989,25 @@ const exportTask = async () => {
 .btn-group {
   display: flex;
   gap: 8px;
+}
+
+.control-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.control-group label {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+
+.control-group input {
+  padding: 4px 8px;
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  font-size: 13px;
 }
 
 .chart-canvas {
