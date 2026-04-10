@@ -26,6 +26,16 @@ const reviewParams = ref({
   maxY: ""
 });
 
+const formatDate = (dateStr) => {
+  if (!dateStr) return "";
+  // 数据库存的是 UTC 字符串，转为本地日期格式
+  const d = new Date(dateStr);
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
 // New task form... (rest of codes)
 const newTask = ref({
   name: "",
@@ -387,6 +397,10 @@ const exportTask = async () => {
     const excelBuffer = write(wb, { bookType: "xlsx", type: "array" });
     await writeFile(savePath, new Uint8Array(excelBuffer));
     
+    // Update task status to exported
+    await db.execute("UPDATE tasks SET status = 'COMPLETED' WHERE id = ?", [activeTask.value.id]);
+    await loadTasks();
+
     isProcessing.value = false;
     alert(`成功导出至: ${savePath}`);
   } catch (err) {
@@ -507,11 +521,12 @@ const exportTask = async () => {
                 <div class="task-meta">
                   <span class="meta-item"><FileText :size="14" /> {{ task.files }} 个文件</span>
                   <span class="meta-item"><Filter :size="14" /> {{ task.target_wavelength }} nm</span>
+                  <span class="meta-item">{{ formatDate(task.created_at) }}</span>
                 </div>
               </div>
-              <div class="header-right">
-                <div class="status-badge" :class="task.status.toLowerCase()">
-                  {{ task.status === 'PENDING_REVIEW' ? '待审核' : '已完成' }}
+               <div class="header-right">
+                <div v-if="task.status === 'COMPLETED'" class="status-badge">
+                  已导出
                 </div>
                 <div class="btn-icon-danger" @click="deleteTask(task.id, $event)">
                   <Trash2 :size="16" />
@@ -728,6 +743,15 @@ const exportTask = async () => {
   display: flex;
   align-items: center;
   gap: 10px;
+}
+
+.status-badge {
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  background-color: #E8FFEA;
+  color: #00B42A;
 }
 
 .btn-icon-danger {
