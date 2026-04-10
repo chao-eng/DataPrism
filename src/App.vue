@@ -416,7 +416,7 @@ const exportTask = async () => {
     <!-- Sidebar -->
     <aside class="sidebar">
       <div class="brand">
-        <div class="brand-icon">DP</div>
+        <img src="/logo.svg" alt="DataPrism Logo" class="brand-icon" />
         <span class="brand-name">DataPrism</span>
       </div>
       
@@ -594,7 +594,7 @@ const exportTask = async () => {
         <div v-if="currentTab === 'settings'" class="about-view">
           <div class="about-card card">
             <div class="about-brand">
-              <div class="brand-icon big">DP</div>
+              <img src="/logo.svg" alt="DataPrism Logo" class="brand-icon big" />
             </div>
             <div class="about-content">
               <h3>关于 DataPrism</h3>
@@ -643,14 +643,8 @@ const exportTask = async () => {
 .brand-icon {
   width: 32px;
   height: 32px;
-  background-color: var(--color-primary);
   border-radius: 6px;
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: bold;
-  font-size: 14px;
+  display: block;
 }
 
 .brand-icon.big {
