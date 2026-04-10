@@ -44,7 +44,7 @@ onMounted(async () => {
     await loadTasks();
     window.addEventListener("resize", () => chartInstance?.resize());
   } catch (err) {
-    console.error("Initialization error:", err);
+    alert(`初始化失败: ${err.message || err}`);
   }
 });
 
@@ -223,7 +223,7 @@ const startTask = async () => {
   } catch (err) {
     console.error("Processing failed:", err);
     isProcessing.value = false;
-    alert(`处理失败: ${err.message}`);
+    alert(`处理失败: ${err.message || err}`);
   }
 };
 
@@ -286,7 +286,7 @@ const exportTask = async () => {
   } catch (err) {
     console.error("Export failed:", err);
     isProcessing.value = false;
-    alert(`导出失败: ${err.message}`);
+    alert(`导出失败: ${err.message || err}`);
   }
 };
 </script>
@@ -418,16 +418,18 @@ const exportTask = async () => {
         <div v-if="currentTab === 'review'" class="review-layout">
           <div class="review-sidebar card">
             <div class="section-title">文件列表</div>
-            <div class="file-list">
-              <div 
-                v-for="file in activeFileList" 
-                :key="file.id" 
-                class="file-item" 
-                :class="{ active: activeFile?.id === file.id }"
-                @click="selectFile(file)"
-              >
-                <FileText :size="16" />
-                <span>{{ file.file_name }}</span>
+            <div class="file-list-container">
+              <div class="file-list">
+                <div 
+                  v-for="file in activeFileList" 
+                  :key="file.id" 
+                  class="file-item" 
+                  :class="{ active: activeFile?.id === file.id }"
+                  @click="selectFile(file)"
+                >
+                  <FileText :size="16" class="file-icon" />
+                  <span class="file-name">{{ file.file_name }}</span>
+                </div>
               </div>
             </div>
           </div>
@@ -820,31 +822,56 @@ const exportTask = async () => {
   height: 100%;
 }
 
+/* File List Improvements */
 .review-sidebar {
-  width: 280px;
-  padding: 16px;
-}
-
-.review-main {
-  flex: 1;
+  width: 260px;
+  padding: 20px 0; /* Align with Feishu style (full-width items) */
+  display: flex;
+  flex-direction: column;
 }
 
 .section-title {
-  font-size: 14px;
-  font-weight: 600;
+  padding: 0 16px;
+  font-size: 12px;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  letter-spacing: 0.5px;
   margin-bottom: 12px;
+}
+
+.file-list-container {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.file-list {
+  padding: 0 8px;
 }
 
 .file-item {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 8px 12px;
-  border-radius: var(--radius-s);
-  font-size: 13px;
+  gap: 12px;
+  padding: 10px 12px;
+  margin-bottom: 2px;
+  border-radius: var(--radius-m);
+  font-size: 14px;
   cursor: pointer;
-  transition: var(--transition-base);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   color: var(--color-text-main);
+  position: relative;
+}
+
+.file-item .file-icon {
+  color: var(--color-text-muted);
+  flex-shrink: 0;
+}
+
+.file-name {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1;
 }
 
 .file-item:hover {
@@ -855,6 +882,22 @@ const exportTask = async () => {
   background-color: var(--color-primary-sub);
   color: var(--color-primary);
   font-weight: 500;
+}
+
+.file-item.active .file-icon {
+  color: var(--color-primary);
+}
+
+/* Subtle active indicator */
+.file-item.active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 8px;
+  bottom: 8px;
+  width: 3px;
+  background-color: var(--color-primary);
+  border-radius: 0 4px 4px 0;
 }
 
 .chart-container {

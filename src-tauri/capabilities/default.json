@@ -7,13 +7,22 @@
     "core:default",
     "opener:default",
     "sql:default",
+    "sql:allow-execute",
+    "sql:allow-select",
     "dialog:default",
     "fs:default",
     "shell:default",
-    "fs:allow-read-recursive",
-    "fs:allow-write-recursive",
+    "fs:allow-read",
+    "fs:allow-read-dir",
+    "fs:allow-read-file",
+    "fs:allow-write",
+    "fs:allow-write-file",
     "fs:allow-exists",
     "dialog:allow-open",
-    "dialog:allow-save"
+    "dialog:allow-save",
+    {
+      "identifier": "fs:scope",
+      "allow": ["$HOME/**"]
+    }
   ]
 }
