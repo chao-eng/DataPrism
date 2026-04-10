@@ -1,9 +1,10 @@
 <script setup>
 import { ref, onMounted } from "vue";
-import { Plus, History, FileText, ChevronRight, BarChart2, Download, Filter, Loader2, X, Trash2, User } from "lucide-vue-next";
+import { Plus, History, FileText, ChevronRight, BarChart2, Download, Filter, Loader2, X, Trash2, User, Github } from "lucide-vue-next";
 import { initDb, getDb } from "./utils/db";
-import { open, save } from "@tauri-apps/plugin-dialog";
+import { open as openDialog } from "@tauri-apps/plugin-dialog";
 import { readDir, writeFile } from "@tauri-apps/plugin-fs";
+import { open as openUrl } from "@tauri-apps/plugin-shell";
 import * as echarts from "echarts";
 import { utils, write } from "xlsx";
 import { processFile, applyZScoreFilter } from "./utils/processor";
@@ -264,7 +265,7 @@ const reClean = async (scope = 'current') => {
 };
 
 const selectFolder = async () => {
-  const selected = await open({
+  const selected = await openDialog({
     directory: true,
     multiple: false,
     title: "选择数据源文件夹"
@@ -409,6 +410,9 @@ const exportTask = async () => {
     alert(`导出失败: ${err.message || err}`);
   }
 };
+const openGithub = async () => {
+  await openUrl("https://github.com/chao-eng/DataPrism");
+};
 </script>
 
 <template>
@@ -440,9 +444,13 @@ const exportTask = async () => {
       </nav>
 
       <div class="sidebar-footer">
-        <div class="nav-item" @click="currentTab = 'settings'">
+        <div class="nav-item" :class="{ active: currentTab === 'settings' }" @click="currentTab = 'settings'">
           <User :size="20" />
           <span>关于</span>
+        </div>
+        <div class="nav-item" @click="openGithub">
+          <Github :size="20" />
+          <span>GitHub</span>
         </div>
       </div>
     </aside>
