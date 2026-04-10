@@ -1,6 +1,6 @@
 <script setup>
 import { ref, onMounted } from "vue";
-import { Plus, History, FileText, ChevronRight, BarChart2, Download, Filter, Loader2, X, Trash2, User, Github } from "lucide-vue-next";
+import { Plus, History, FileText, ChevronRight, BarChart2, Download, Filter, Loader2, X, Trash2, User, Github, Menu, ChevronLeft } from "lucide-vue-next";
 import { initDb, getDb } from "./utils/db";
 import { open as openDialog } from "@tauri-apps/plugin-dialog";
 import { readDir, writeFile } from "@tauri-apps/plugin-fs";
@@ -26,6 +26,8 @@ const reviewParams = ref({
   minKeep: 80,
   maxY: ""
 });
+
+const isSidebarCollapsed = ref(false);
 
 const formatDate = (dateStr) => {
   if (!dateStr) return "";
@@ -418,10 +420,14 @@ const openGithub = async () => {
 <template>
   <div class="app-layout">
     <!-- Sidebar -->
-    <aside class="sidebar">
+    <aside class="sidebar" :class="{ collapsed: isSidebarCollapsed }">
       <div class="brand">
         <img src="/logo.svg" alt="DataPrism Logo" class="brand-icon" />
-        <span class="brand-name">DataPrism</span>
+        <span v-if="!isSidebarCollapsed" class="brand-name">DataPrism</span>
+        <button class="collapse-btn" @click="isSidebarCollapsed = !isSidebarCollapsed">
+          <ChevronLeft v-if="!isSidebarCollapsed" :size="16" />
+          <Menu v-else :size="16" />
+        </button>
       </div>
       
       <nav class="nav-menu">
@@ -429,28 +435,35 @@ const openGithub = async () => {
           class="nav-item" 
           :class="{ active: currentTab === 'tasks' }" 
           @click="currentTab = 'tasks'"
+          :title="isSidebarCollapsed ? '任务列表' : ''"
         >
           <History :size="20" />
-          <span>任务列表</span>
+          <span v-if="!isSidebarCollapsed">任务列表</span>
         </div>
         <div 
           class="nav-item" 
           :class="{ active: currentTab === 'review' }" 
           @click="currentTab = 'review'"
+          :title="isSidebarCollapsed ? '数据审核' : ''"
         >
           <BarChart2 :size="20" />
-          <span>可视化审核</span>
+          <span v-if="!isSidebarCollapsed">可视化审核</span>
         </div>
       </nav>
 
       <div class="sidebar-footer">
-        <div class="nav-item" :class="{ active: currentTab === 'settings' }" @click="currentTab = 'settings'">
+        <div 
+          class="nav-item" 
+          :class="{ active: currentTab === 'settings' }" 
+          @click="currentTab = 'settings'"
+          :title="isSidebarCollapsed ? '关于' : ''"
+        >
           <User :size="20" />
-          <span>关于</span>
+          <span v-if="!isSidebarCollapsed">关于</span>
         </div>
-        <div class="nav-item" @click="openGithub">
+        <div class="nav-item" @click="openGithub" :title="isSidebarCollapsed ? 'GitHub' : ''">
           <Github :size="20" />
-          <span>GitHub</span>
+          <span v-if="!isSidebarCollapsed">GitHub</span>
         </div>
       </div>
     </aside>
@@ -633,12 +646,19 @@ const openGithub = async () => {
 
 /* Sidebar */
 .sidebar {
-  width: 240px;
+  width: 200px;
   background-color: var(--color-surface);
   border-right: 1px solid var(--color-border);
   display: flex;
   flex-direction: column;
   padding: 24px 12px;
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+}
+
+.sidebar.collapsed {
+  width: 64px;
+  padding: 24px 8px;
 }
 
 .brand {
@@ -646,6 +666,59 @@ const openGithub = async () => {
   align-items: center;
   gap: 12px;
   padding: 0 12px 32px;
+  position: relative;
+}
+
+.sidebar.collapsed .brand {
+  padding: 0 0 24px;
+  justify-content: center;
+}
+
+.sidebar.collapsed .brand-icon {
+  width: 24px;
+  height: 24px;
+}
+
+.collapse-btn {
+  position: absolute;
+  right: -8px;
+  top: -4px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--color-text-muted);
+  transition: all 0.2s;
+  z-index: 10;
+}
+
+.sidebar.collapsed .collapse-btn {
+  left: 50%;
+  transform: translateX(-50%);
+  top: 54px;
+  right: auto;
+}
+
+.collapse-btn:hover {
+  color: var(--color-primary);
+  border-color: var(--color-primary);
+  background-color: var(--color-primary-sub);
+}
+
+.sidebar.collapsed .nav-item {
+  justify-content: center;
+  padding: 10px 0;
+  margin-bottom: 12px;
+}
+
+.sidebar.collapsed .nav-item svg {
+  width: 18px;
+  height: 18px;
 }
 
 .brand-icon {
@@ -1145,19 +1218,42 @@ const openGithub = async () => {
 .chart-header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start; /* 改为起点对齐，方便换行 */
+  flex-wrap: wrap; /* 允许换行 */
+  gap: 16px;
   margin-bottom: 20px;
 }
 
 .chart-title {
   font-weight: 600;
   font-size: 15px;
+  min-width: 200px;
+  padding-top: 8px; /* 补齐与右侧输入框的对齐 */
 }
 
 .chart-controls {
   display: flex;
-  align-items: center;
+  align-items: flex-end; /* 与按钮对齐 */
+  flex-wrap: wrap;
   gap: 16px;
+  flex: 1;
+  justify-content: flex-end;
+}
+
+/* 适配较小屏幕 */
+@media (max-width: 1200px) {
+  .chart-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .chart-controls {
+    justify-content: flex-start;
+  }
+  
+  .chart-title {
+    padding-top: 0;
+  }
 }
 
 .btn-group {
