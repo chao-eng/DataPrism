@@ -1,6 +1,6 @@
 <script setup>
 import { ref, onMounted } from "vue";
-import { Plus, History, Settings, FileText, ChevronRight, BarChart2, Download, Filter, Loader2, X } from "lucide-vue-next";
+import { Plus, History, Settings, FileText, ChevronRight, BarChart2, Download, Filter, Loader2, X, Trash2 } from "lucide-vue-next";
 import { initDb, getDb } from "./utils/db";
 import { open, save } from "@tauri-apps/plugin-dialog";
 import { readDir, writeFile } from "@tauri-apps/plugin-fs";
@@ -85,15 +85,24 @@ const loadChartData = async () => {
 };
 
 const renderChart = (points) => {
-  if (!chartInstance && chartRef.value) {
-    chartInstance = echarts.init(chartRef.value);
-    chartInstance.on("click", async (params) => {
-      if (params.componentType === "series") {
-        const pointId = params.data[2]; // We'll store ID in the 3rd index
-        await togglePointDeletion(pointId);
-      }
-    });
+  if (chartRef.value) {
+    // 检查当前 DOM 元素是否已经有关联的实例
+    let existingInstance = echarts.getInstanceByDom(chartRef.value);
+    
+    if (!existingInstance) {
+      chartInstance = echarts.init(chartRef.value);
+      chartInstance.on("click", async (params) => {
+        if (params.componentType === "series") {
+          const pointId = params.data[2];
+          await togglePointDeletion(pointId);
+        }
+      });
+    } else {
+      chartInstance = existingInstance;
+    }
   }
+
+  if (!chartInstance) return;
 
   const normalPoints = points.filter(p => p.is_deleted === 0).map(p => [p.x_index, p.original_value, p.id]);
   const deletedPoints = points.filter(p => p.is_deleted !== 0).map(p => [p.x_index, p.original_value, p.id]);
@@ -224,6 +233,22 @@ const startTask = async () => {
     console.error("Processing failed:", err);
     isProcessing.value = false;
     alert(`处理失败: ${err.message || err}`);
+  }
+};
+
+const deleteTask = async (taskId, event) => {
+  event.stopPropagation();
+  if (!confirm("确定要删除该任务吗？此操作将永久删除该任务及其下的所有文件和处理数据。")) return;
+  
+  try {
+    const db = await getDb();
+    // 级联删除数据
+    await db.execute("DELETE FROM data_points WHERE file_id IN (SELECT id FROM file_records WHERE task_id = ?)", [taskId]);
+    await db.execute("DELETE FROM file_records WHERE task_id = ?", [taskId]);
+    await db.execute("DELETE FROM tasks WHERE id = ?", [taskId]);
+    await loadTasks();
+  } catch (err) {
+    alert(`删除失败: ${err.message || err}`);
   }
 };
 
@@ -400,11 +425,16 @@ const exportTask = async () => {
                 <h3 class="task-name">{{ task.name }}</h3>
                 <div class="task-meta">
                   <span class="meta-item"><FileText :size="14" /> {{ task.files }} 个文件</span>
-                  <span class="meta-item"><Filter :size="14" /> {{ task.wavelength }} nm</span>
+                  <span class="meta-item"><Filter :size="14" /> {{ task.target_wavelength }} nm</span>
                 </div>
               </div>
-              <div class="status-badge" :class="task.status.toLowerCase()">
-                {{ task.status === 'PENDING_REVIEW' ? '待审核' : '已完成' }}
+              <div class="header-right">
+                <div class="status-badge" :class="task.status.toLowerCase()">
+                  {{ task.status === 'PENDING_REVIEW' ? '待审核' : '已完成' }}
+                </div>
+                <div class="btn-icon-danger" @click="deleteTask(task.id, $event)">
+                  <Trash2 :size="16" />
+                </div>
               </div>
             </div>
             <div class="task-card-footer">
@@ -606,6 +636,28 @@ const exportTask = async () => {
 .btn-minor:hover {
   background-color: var(--color-bg-base);
   border-color: var(--color-border-hover);
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.btn-icon-danger {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  color: var(--color-text-muted);
+  transition: all 0.2s;
+}
+
+.btn-icon-danger:hover {
+  background-color: #FFEEED;
+  color: var(--color-danger);
 }
 
 /* Task Cards */
